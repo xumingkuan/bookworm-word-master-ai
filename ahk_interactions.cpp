@@ -112,20 +112,28 @@ char retrieve_initial_letter(bool &initial_letter_cleared) {
 		return ch;
 	}
 	const int kMaxAttempt = 8;
-	const int kReInitializeAtAttempt = 5;
+	const int kReInitializeAtAttempt = 4;
 	const int kMinErrorThreshold = 32;
 	int num_attempts = 0;
 	int col[kNumPixelPerLetter];
 	initial_letter_cleared = false;
+	bool cannot_read = false;
 	do {
-		if (num_attempts != kReInitializeAtAttempt) {
+		num_attempts++;
+		// Attempt multiple times to avoid the multicolor floating characters
+		if (num_attempts != kReInitializeAtAttempt + 1) {
+			// The initial letter is not just cleared
 			system("ahk.exe get_color_of_initial_letter.ahk");
 		}
 		FILE *fin = fopen("tmp.txt", "r");
 		if (!read_colors(fin, col)) {
-			printf("Cannot read initial letter.\n");
-			exit(1);
+			cannot_read = true;
+			if (fin) {
+				fclose(fin);
+			}
+			continue;
 		}
+		cannot_read = false;
 		fclose(fin);
 		if (!colors_initialized) {
 			initial_letter_cleared = initialize_initial_letter(/*re_initialize=*/false);
@@ -156,12 +164,14 @@ char retrieve_initial_letter(bool &initial_letter_cleared) {
 		if (initial_letter_cleared) {
 			break;  // Unable to try again
 		}
-		num_attempts++;
-		// Attempt multiple times to avoid the multicolor floating characters
 		if (num_attempts == kReInitializeAtAttempt) {
 			initial_letter_cleared = initialize_initial_letter(/*re_initialize=*/true);
 		}
 	} while (num_attempts < kMaxAttempt);
+	if (cannot_read) {
+		printf("Cannot read initial letter.\n");
+		exit(1);
+	}
 	printf("Cannot parse initial letter (color=%s).\n", color_string(col));
 	exit(1);
 }
@@ -236,12 +246,31 @@ void perform_guess(const char *guess_word, int remaining_guesses, char *known_le
 		// do not invoke ahk
 		return;
 	}
+	if (debug_mode) {
+		printf("Invoking perform_guess.ahk...\n");
+		fflush(stdout);
+	}
 	system("ahk.exe perform_guess.ahk");
+	if (debug_mode) {
+		printf("perform_guess.ahk done.\n");
+		fflush(stdout);
+	}
 }
 
-bool input_gold_silver(bool *gold, bool *silver) {
+bool input_gold_silver(int remaining_guesses, bool *gold, bool *silver) {
 	static char buf[20];
 	scanf("%10s", buf);  // only first 5 characters are needed
+	if (std::string(buf) == std::string("0")) {
+		// perform guess after pressing Enter
+		printf("Please go to the Word Master mini-game and press Enter to perform the guess.\n");
+		pause_until_enter();
+		system("ahk.exe perform_guess.ahk");
+		auto manual_debug_mode_backup = manual_debug_mode;
+		manual_debug_mode = false;
+		auto result = retrieve_guess_result(remaining_guesses, gold, silver);
+		manual_debug_mode = manual_debug_mode_backup;
+		return result;
+	}
 	if (strlen(buf) != WORD_LEN) {
 		// correct guess
 		return false;
@@ -255,38 +284,60 @@ bool input_gold_silver(bool *gold, bool *silver) {
 
 bool retrieve_guess_result(int remaining_guesses, bool *gold, bool *silver) {
 	if (manual_debug_mode) {
-		return input_gold_silver(gold, silver);
+		return input_gold_silver(remaining_guesses, gold, silver);
 	}
 	FILE *fout = fopen("tmp.txt", "w");
 	fprintf(fout, "%d", MAX_GUESS - remaining_guesses);  // "\n" at the end is not accepted in autohotkey
 	fclose(fout);
 	Sleep(100);  // wait for the color to be correct
-	system("ahk.exe retrieve_guess_result.ahk");
-	FILE *fin = fopen("tmp.txt", "r");
-	char buf[64];
-	if (fscanf(fin, "%s", buf) != 1) {
-		printf("Cannot read guess result.\n");
-		exit(1);
-	}
-	if (strlen(buf) != WORD_LEN) {
-		printf("Cannot parse guess result.\n");
-		exit(1);
-	}
-	for (int i = 0; i < WORD_LEN; i++) {
-		if (buf[i] == '0') {
-			// Empty slot means already correct.
-			return false;
-		} if (buf[i] == '5' || buf[i] == '4' || buf[i] == '6') {
-			gold[i] = silver[i] = false;
-		} else if (buf[i] == 'E' || buf[i] == 'F' || buf[i] == 'D') {
-			silver[i] = true;
-			gold[i] = false;
-		} else if (buf[i] == '9' || buf[i] == 'A' || buf[i] == '8' || buf[i] == 'B') {
-			gold[i] = true;
-			silver[i] = false;
-		} else {
-			printf("Cannot parse guess result at %d: %c\n", i, buf[i]);
+	const int kMaxAttempt = 8;
+	int num_attempts = 0;
+	std::string error_message;
+	static char buffer[64];
+	do {
+		num_attempts++;
+		system("ahk.exe retrieve_guess_result.ahk");
+		FILE *fin = fopen("tmp.txt", "r");
+		if (!fin) {
+			error_message = std::string("Cannot open guess result file.\n");
+			continue;
 		}
-	}
-	return true;
+		char buf[64];
+		if (fscanf(fin, "%s", buf) != 1) {
+			error_message = std::string("Cannot read guess result.\n");
+			fclose(fin);
+			continue;
+		}
+		if (strlen(buf) != WORD_LEN) {
+			error_message = std::string("Cannot parse guess result.\n");
+			fclose(fin);
+			continue;
+		}
+		bool ok = true;
+		for (int i = 0; i < WORD_LEN; i++) {
+			if (buf[i] == '0') {
+				// Empty slot means already correct.
+				return false;
+			} if (buf[i] == '5' || buf[i] == '4' || buf[i] == '6') {
+				gold[i] = silver[i] = false;
+			} else if (buf[i] == 'E' || buf[i] == 'F' || buf[i] == 'D') {
+				silver[i] = true;
+				gold[i] = false;
+			} else if (buf[i] == '9' || buf[i] == 'A' || buf[i] == '8' || buf[i] == 'B') {
+				gold[i] = true;
+				silver[i] = false;
+			} else {
+				sprintf(buffer, "Cannot parse guess result at %d: %c\n", i, buf[i]);
+				error_message = std::string(buffer);
+				ok = false;
+				break;
+			}
+		}
+		if (ok) {
+			// Success
+			return true;
+		}
+	} while (num_attempts < kMaxAttempt);
+	printf("%s\n", error_message.c_str());
+	exit(1);
 }

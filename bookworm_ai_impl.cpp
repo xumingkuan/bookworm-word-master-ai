@@ -620,7 +620,6 @@ const char *guess(int word_guessed, int remaining_guesses, char initial_letter, 
 			}
 		}
 		search_result = first_guess[initial_letter - 'a'];
-		//printf("%s\n", scramble[search_result]);
 		return scramble[search_result];
 	} else {
 		is_first_guess = false;
@@ -647,7 +646,6 @@ const char *guess(int word_guessed, int remaining_guesses, char initial_letter, 
 		if (new_possible_answers.empty()) {
 			current_state = backup_state;  // restore current_state
 			known_letters = current_state.gold;
-			//printf("invalid\n");
 			return "invalid";
 		}
 		swap(possible_answers, new_possible_answers);
@@ -664,7 +662,6 @@ const char *guess(int word_guessed, int remaining_guesses, char initial_letter, 
 				index += 2;
 		}
 		search_result = second_guess[initial_letter - 'a'][index];
-		//printf("%s\n", scramble[search_result]);
 		return scramble[search_result];
 	}
 	count_letters(current_state, possible_answers);

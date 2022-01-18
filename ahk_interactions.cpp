@@ -99,6 +99,9 @@ static bool initialize_initial_letter(bool re_initialize) {
 		fin = fopen("color_of_initial_letter.txt", "r");
 		num_attempts++;
 	} while (num_attempts < kMaxAttempt);
+	if (fin) {
+		fclose(fin);
+	}
 	printf("Cannot initialize the colors of initial letters.\n");
 	exit(1);
 }
@@ -117,6 +120,7 @@ char retrieve_initial_letter(bool &initial_letter_cleared) {
 	int num_attempts = 0;
 	int col[kNumPixelPerLetter];
 	initial_letter_cleared = false;
+	bool cannot_open = false;
 	bool cannot_read = false;
 	do {
 		num_attempts++;
@@ -126,11 +130,13 @@ char retrieve_initial_letter(bool &initial_letter_cleared) {
 			system("ahk.exe get_color_of_initial_letter.ahk");
 		}
 		FILE *fin = fopen("tmp.txt", "r");
+		if (!fin) {
+			cannot_open = true;
+			continue;
+		}
 		if (!read_colors(fin, col)) {
 			cannot_read = true;
-			if (fin) {
-				fclose(fin);
-			}
+			fclose(fin);
 			continue;
 		}
 		cannot_read = false;
@@ -168,6 +174,10 @@ char retrieve_initial_letter(bool &initial_letter_cleared) {
 			initial_letter_cleared = initialize_initial_letter(/*re_initialize=*/true);
 		}
 	} while (num_attempts < kMaxAttempt);
+	if (cannot_open) {
+		printf("Cannot open the file of initial letter, errno=%d.\n", errno);
+		exit(1);
+	}
 	if (cannot_read) {
 		printf("Cannot read initial letter.\n");
 		exit(1);
@@ -206,8 +216,21 @@ void perform_guess(const char *guess_word, int remaining_guesses, char *known_le
 	}
 	FILE *fout = fopen("tmp.txt", "w");
 	if (!fout) {
-		printf("Cannot write file to guess.\n");
-		exit(1);
+		const int kMaxWriteAttempt = 5;
+		int num_write_attempts = 0;
+		do {
+			Sleep(100);  // Wait for tmp.txt to be available
+			fout = fopen("tmp.txt", "w");
+			if (fout) {
+				// Success
+				break;
+			}
+			num_write_attempts++;
+		} while (num_write_attempts < kMaxWriteAttempt);
+		if (num_write_attempts >= kMaxWriteAttempt) {
+			printf("Cannot write file to guess.\n");
+			exit(1);
+		}
 	}
 	fprintf(fout, "%d\n", MAX_GUESS - remaining_guesses);
 	for (int i = 0; i < WORD_LEN; i++) {
@@ -308,8 +331,21 @@ bool retrieve_guess_result(int remaining_guesses, bool *gold, bool *silver) {
 	}
 	FILE *fout = fopen("tmp.txt", "w");
 	if (!fout) {
-		printf("Cannot write file to retrieve guess result.\n");
-		exit(1);
+		const int kMaxWriteAttempt = 5;
+		int num_write_attempts = 0;
+		do {
+			Sleep(100);  // Wait for tmp.txt to be available
+			fout = fopen("tmp.txt", "w");
+			if (fout) {
+				// Success
+				break;
+			}
+			num_write_attempts++;
+		} while (num_write_attempts < kMaxWriteAttempt);
+		if (num_write_attempts >= kMaxWriteAttempt) {
+			printf("Cannot write file to retrieve guess result.\n");
+			exit(1);
+		}
 	}
 	fprintf(fout, "%d", MAX_GUESS - remaining_guesses);  // "\n" at the end is not accepted in autohotkey
 	fclose(fout);
@@ -359,6 +395,7 @@ bool retrieve_guess_result(int remaining_guesses, bool *gold, bool *silver) {
 		}
 		if (ok) {
 			// Success
+			fclose(fin);
 			return true;
 		}
 	} while (num_attempts < kMaxAttempt);

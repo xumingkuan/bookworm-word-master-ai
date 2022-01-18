@@ -11,7 +11,7 @@ bool retrieve_guess_result(int remaining_guesses, bool *gold, bool *silver);
 const int WORD_LEN = 5;
 const int MAX_GUESS = 5;
 const int NUMC = 26;
-const int NUM_SCRAMBLE = 7828;
+const int NUM_SCRAMBLE = 7829;
 const int win_points[MAX_GUESS] = {500, 1000, 2500, 5000, 10000};  // win_points[i] = points for a correct guess with i remaining guesses
 
 #endif

@@ -183,6 +183,8 @@ void pause_until_enter() {
 void perform_guess(const char *guess_word, int remaining_guesses, char *known_letters, bool *last_gold) {
 	const int kLetterCoolDown = 700;  // We need to wait 700ms to press the same letter again.
 	const int kSlotCoolDown = 100;  // We need to wait 100ms to load a letter to a just unloaded slot.
+	const int kMinGuessTime = 50;  // If the guess is made within 50ms, assume there is something wrong and retry.
+	const int kMaxAttempt = 5;  // Maximum retry times.
 	static std::chrono::time_point<std::chrono::steady_clock> last_press[26];
 	if (!guess_word) {
 		// initialize the array |last_press|
@@ -203,6 +205,10 @@ void perform_guess(const char *guess_word, int remaining_guesses, char *known_le
 		last_gold[0] = true;
 	}
 	FILE *fout = fopen("tmp.txt", "w");
+	if (!fout) {
+		printf("Cannot write file to guess.\n");
+		exit(1);
+	}
 	fprintf(fout, "%d\n", MAX_GUESS - remaining_guesses);
 	for (int i = 0; i < WORD_LEN; i++) {
 		// i-th letter
@@ -250,7 +256,21 @@ void perform_guess(const char *guess_word, int remaining_guesses, char *known_le
 		printf("Invoking perform_guess.ahk...\n");
 		fflush(stdout);
 	}
-	system("ahk.exe perform_guess.ahk");
+	int num_attempts = 0;
+	do {
+		std::chrono::time_point<std::chrono::steady_clock> before = std::chrono::steady_clock::now();
+		system("ahk.exe perform_guess.ahk");
+		std::chrono::time_point<std::chrono::steady_clock> after = std::chrono::steady_clock::now();
+		if (std::chrono::duration_cast<std::chrono::milliseconds>(after - before).count() > kMaxAttempt) {
+			// good guess
+			break;
+		}
+		num_attempts++;
+	} while (num_attempts < kMaxAttempt);
+	if (num_attempts >= kMaxAttempt) {
+		printf("Failed to make a guess.\n");
+		exit(1);
+	}
 	if (debug_mode) {
 		printf("perform_guess.ahk done.\n");
 		fflush(stdout);
@@ -287,6 +307,10 @@ bool retrieve_guess_result(int remaining_guesses, bool *gold, bool *silver) {
 		return input_gold_silver(remaining_guesses, gold, silver);
 	}
 	FILE *fout = fopen("tmp.txt", "w");
+	if (!fout) {
+		printf("Cannot write file to retrieve guess result.\n");
+		exit(1);
+	}
 	fprintf(fout, "%d", MAX_GUESS - remaining_guesses);  // "\n" at the end is not accepted in autohotkey
 	fclose(fout);
 	Sleep(100);  // wait for the color to be correct

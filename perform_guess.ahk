@@ -72,9 +72,12 @@ Loop, read, tmp.txt
 			Click
 		}
 	}
+	if (line_number = 15) {
+		; last line
+		Sleep, 100  ; prevent bug at the 5th letter
+	}
 	line_number += 1
 }
-Sleep, 100  ; prevent bug at the 5th letter
 MouseMove, submit_x, submit_y, 0.1
 Click
 ;  MouseMove, % sx_now - sd, sy_now, 0.1  ; prevent bug at the 5th letter

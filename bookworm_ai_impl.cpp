@@ -637,7 +637,7 @@ const char *guess(int word_guessed, int remaining_guesses, char initial_letter, 
 			}
 		}
 		if (debug_mode) {
-			printf("%d possible answers", (int) possible_answers.size());
+			printf("%d possible answer%s", (int) possible_answers.size(), possible_answers.size() == 1 ? "" : "s");
 			for (auto i : possible_answers) {
 				printf(", %s", scramble[i]);
 			}

@@ -377,6 +377,7 @@ bool retrieve_guess_result(int remaining_guesses, bool *gold, bool *silver) {
 		for (int i = 0; i < WORD_LEN; i++) {
 			if (buf[i] == '0') {
 				// Empty slot means already correct.
+				fclose(fin);
 				return false;
 			} if (buf[i] == '5' || buf[i] == '4' || buf[i] == '6') {
 				gold[i] = silver[i] = false;

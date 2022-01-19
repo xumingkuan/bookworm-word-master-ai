@@ -3,6 +3,7 @@
 
 const char *guess(int num_testcase, int remaining_guesses, char initial_letter, bool *gold, bool *silver, char *&known_letters);
 void init(int num_scramble, const char *scramble);
+bool initialize_initial_letter(bool re_initialize);
 char retrieve_initial_letter(bool &initial_letter_cleared);
 void pause_until_enter();
 void perform_guess(const char *guess_word, int remaining_guesses, char *known_letters, bool *last_gold);

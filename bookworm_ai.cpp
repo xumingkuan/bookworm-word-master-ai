@@ -65,6 +65,11 @@ int main() {
 		fflush(stdout);
 		pause_until_enter();
 	}
+	if (max_num_words == 0) {
+		initialize_initial_letter(/*re_initialize=*/true);
+		printf("Done!\n");
+		return 0;
+	}
 	long long num_words = 0, total_pt = 0;
 	bool gold[WORD_LEN], silver[WORD_LEN];
 	while (true) {

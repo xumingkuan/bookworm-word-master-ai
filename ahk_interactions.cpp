@@ -58,11 +58,17 @@ static const char *color_string(int *col) {
 	return result.c_str();
 }
 
-static bool initialize_initial_letter(bool re_initialize) {
+bool initialize_initial_letter(bool re_initialize) {
 	// Return if |initialize_color_of_initial_letter.ahk| is invoked.
 	bool invoked = false;
 	if (re_initialize) {
-		printf("Re-initializing the colors of initial letters...\n");
+		FILE *fin = fopen("color_of_initial_letter.txt", "r");
+		if (fin) {
+			fclose(fin);
+			printf("Re-initializing the colors of initial letters...\n");
+		} else {
+			printf("Initializing the colors of initial letters...\n");
+		}
 		fflush(stdout);
 		system("ahk.exe initialize_color_of_initial_letter.ahk");
 		invoked = true;

@@ -41,8 +41,6 @@ line_number := 0
 letter_before := -1
 letter_after := -1
 clicked_time := []
-letter_cooldown := 600  ; wait 600ms for the same letter
-current_time := letter_cooldown
 
 letter_id := 0
 Loop {

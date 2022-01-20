@@ -8,6 +8,7 @@ SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 sx0 := 390
 sy0 := 239
 sd0 := 89
+sdy0 := 90
 
 WinGetPos, X, Y, W, H, A
 scale := W / 1209.0  ; get the display scale divided by 150% (width=1209)
@@ -16,6 +17,7 @@ scale := W / 1209.0  ; get the display scale divided by 150% (width=1209)
 sx := Round(sx0 * scale)
 sy := Round(sy0 * scale)
 sd := sd0 * scale
+sdy := sdy0 * scale
 
 join(strArray) {
 	s := ""
@@ -33,7 +35,7 @@ retrieve_guess_result() {
 	col := []
 	i := 0
 	Loop {
-		PixelGetColor, C, % sx + i * sd, % sy + line_number * sd
+		PixelGetColor, C, % sx + i * sd, % sy + line_number * sdy
 		col[i] := C
 		i += 1
 	} Until i >= 5

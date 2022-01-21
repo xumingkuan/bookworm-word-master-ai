@@ -2,14 +2,15 @@
 
 ## Overview
 
-Bookworm Word Master AI is a program that can play the mini-game [*Word Master*](https://bookwormadvs.fandom.com/wiki/Word_Master) in the game [*Bookworm Adventures*](https://en.wikipedia.org/wiki/Bookworm_Adventures) (either Vol.1 or Vol.2) indefinitely.
+Bookworm Word Master AI is a program that can play the mini-game [*Word Master*](https://bookwormadvs.fandom.com/wiki/Word_Master) in the game [*Bookworm Adventures*](https://en.wikipedia.org/wiki/Bookworm_Adventures) (either Vol.1 or Vol.2) infinitely.
 
 ## How to Run (Play)
 
 1. Simply download the release package (or build from scratch in the following section).
    - Make sure all files are in the same folder, and preferably do not put any other files in this folder.
+   - The release package only works with 64-bit Windows systems. If you are using a 32-bit Windows system, please build from scratch in the next section.
 2. Open the mini-game *Word Master* in the game *Bookworm Adventures*, and choose not to display "helpful tooltips" when popped out.
-3. Run `bookworm_ai.exe`, and enter how many words you would like to guess in the game. You can enter `-1` to play indefinitely, or enter a small number (the number must not exceed 9,223,372,036,854,775,807) to let the game end in a reasonable time.
+3. Run `bookworm_ai.exe`, and enter how many words you would like to guess in the game. You can enter `-1` to play infinitely, or enter a small number (the number must not exceed 9,223,372,036,854,775,807) to let the game end in a reasonable time.
    - When running the program for the first time or when the colors of some pixels changes (e.g., the game window is dragged), the program needs to initialize the colors of all initial letters. This should take less than 1 minute.
 4. If you want to terminate the program, press and hold `Esc` until the mouse is not moving on its own. Then close the command prompt of `bookworm_ai.exe`.
    - All processes related to the Bookworm Word Master AI should be terminated in 30 seconds. Please wait at least 30 seconds to run the program again.

@@ -4,6 +4,8 @@
 
 Bookworm Word Master AI is a program that can play the mini-game [*Word Master*](https://bookwormadvs.fandom.com/wiki/Word_Master) in the game [*Bookworm Adventures*](https://en.wikipedia.org/wiki/Bookworm_Adventures) (either Vol.1 or Vol.2) infinitely.
 
+It should also be able to play [*Wordle*](https://www.powerlanguage.co.uk/wordle/) with a 100% winning rate after some small modifications, but I haven't got time to implement it yet -- contribution welcomed!
+
 ## How to Run (Play)
 
 1. Simply download the release package (or build from scratch in the following section).

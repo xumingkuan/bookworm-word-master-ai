@@ -1,5 +1,7 @@
 # Bookworm Word Master AI
 
+[Demo video on Bilibili](https://www.bilibili.com/video/BV1Bm4y1S7ZR)
+
 ## Overview
 
 Bookworm Word Master AI is a program that can play the mini-game [*Word Master*](https://bookwormadvs.fandom.com/wiki/Word_Master) in the game [*Bookworm Adventures*](https://en.wikipedia.org/wiki/Bookworm_Adventures) (either Vol.1 or Vol.2) infinitely.
